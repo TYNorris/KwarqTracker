@@ -1,7 +1,8 @@
 import logging
 
-from config import get_config
 from logging.handlers import TimedRotatingFileHandler
+
+from ..config import get_config
 
 config = get_config()
 

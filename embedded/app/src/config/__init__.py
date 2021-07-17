@@ -1,7 +1,7 @@
 import platform
 
-from common import Config
-from dev import DevConfig
+from .common import Config
+from .dev import DevConfig
 
 def get_config() -> Config:
     if platform.system() == 'Windows':
