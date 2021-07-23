@@ -10,7 +10,7 @@ class ReaderMock(IReader):
     def read_once(self):
         self._count += 1
         if self._count % 5 == 0:
-            return f"MOCK_TAG{self._count}"
+            return 19088700 + self._count
         return None
 
     def close(self):

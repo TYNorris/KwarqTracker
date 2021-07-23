@@ -28,11 +28,11 @@ class Reader(IReader):
     def read_once(self):
         # Check if a card is available to read
         uid = self.pn532.read_passive_target(timeout=0.5)
-        print('.', end="")
         # Try again if no card is available.
         if uid is None:
             return None
-        output = [hex(i) for i in uid]
+
+        output = int.from_bytes(uid, byteorder='big')
         logger.info(f'Found card with UID: {output}')
         return output
 
