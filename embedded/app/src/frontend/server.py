@@ -6,10 +6,10 @@ import sd_material_ui
 from dash.dependencies import Input, Output, State
 from datetime import datetime
 
-from ..reader import get_reader
+from ..user.broker import Broker
 
 app = dash.Dash()
-reader = get_reader()
+broker = Broker()
 
 # A Button on Paper
 app.layout = sd_material_ui.Paper([
@@ -30,9 +30,9 @@ app.layout = sd_material_ui.Paper([
 @app.callback(Output('live-update-text', 'children'),
               [Input('interval-component', 'n_intervals')])
 def update_metrics(interval):
-    tag = reader.LAST_TAG
+    message = broker.get_current_message()
     return [
-        html.Span(f'Last Tag: {tag}'),
+        html.Span(f'Message: {message}'),
     ]
 
 
