@@ -34,6 +34,7 @@ class Reader(IReader):
 
         output = int.from_bytes(uid, byteorder='big')
         logger.info(f'Found card with UID: {output}')
+        self.event.on_change(output)
         return output
 
     def read_loop(self):
