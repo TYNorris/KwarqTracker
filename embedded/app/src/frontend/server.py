@@ -3,10 +3,8 @@ import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as bootstrap
 from dash.dependencies import Input, Output, State
-from datetime import datetime
 
 from ..user.broker import Broker
-from ..user.message import Status
 
 app = dash.Dash(
     external_stylesheets=[bootstrap.themes.BOOTSTRAP]
