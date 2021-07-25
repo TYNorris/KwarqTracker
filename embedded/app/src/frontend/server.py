@@ -1,39 +1,78 @@
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
-import sd_material_ui
-
+import dash_bootstrap_components as bootstrap
 from dash.dependencies import Input, Output, State
 from datetime import datetime
 
 from ..user.broker import Broker
+from ..user.message import Status
 
-app = dash.Dash()
+app = dash.Dash(
+    external_stylesheets=[bootstrap.themes.BOOTSTRAP]
+)
 broker = Broker()
 
+
+header = [
+    bootstrap.Col([
+            html.H1("Kwarqs Check In"),
+            html.Hr(),
+        ],
+    )
+]
+
+body = [
+    bootstrap.Col(
+        [
+            bootstrap.Alert(id='live-update-text'),
+            dcc.Interval(
+                id='interval-component',
+                interval=0.5 * 1000,  # in milliseconds
+                n_intervals=0
+            )
+        ],
+        md=8,
+    ),
+    bootstrap.Col(
+        [
+            html.Div(children=[
+                html.P(id='output', children=['n_clicks value: . n_clicks_previous value: ']),
+                bootstrap.Button(id='input', children='Click me'),
+                ]
+            )
+        ]
+    ),
+]
+
+
 # A Button on Paper
-app.layout = sd_material_ui.Paper([
-    html.Div(children=[
-        html.P(id='output', children=['n_clicks value: . n_clicks_previous value: ']),
-        html.Div(id='live-update-text'),
-        dcc.Interval(
-            id='interval-component',
-            interval=0.5 * 1000,  # in milliseconds
-            n_intervals=0
+app.layout = bootstrap.Container(
+    [
+        bootstrap.Row(
+            header,
+            align="center",
+        ),
+        bootstrap.Row(
+            body,
+            align="center"
         )
-    ]),
+    ],
+    fluid=True,
+)
 
-    sd_material_ui.Button(id='input', children='Click me'),
-])
 
-
-@app.callback(Output('live-update-text', 'children'),
-              [Input('interval-component', 'n_intervals')])
-def update_metrics(interval):
+@app.callback(
+    Output('live-update-text', 'children'),
+    Output('live-update-text', 'color'),
+    [Input('interval-component', 'n_intervals')])
+def update_text(interval):
     message = broker.get_current_message()
-    return [
-        html.Span(f'Message: {message}'),
+    children = [
+        html.H1(message.title, className='display-3'),
+        html.P(message.subtitle, className="lead"),
     ]
+    return children, message.status
 
 
 # Callback for Button
