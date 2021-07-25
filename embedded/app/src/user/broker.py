@@ -1,7 +1,9 @@
 import asyncio
+from datetime import datetime
 
 from app.src import Singleton
 from app.src.reader import IReader, get_reader
+from app.src.storage.helper import StorageHelper
 
 class Broker(Singleton):
 
@@ -12,6 +14,7 @@ class Broker(Singleton):
         self._coroutines = []
 
         self.reader = get_reader()
+        self.storage = StorageHelper()
         self.reader.add_listener(self.on_new_tag)
         self.message = ""
         self.is_running = True
@@ -20,7 +23,14 @@ class Broker(Singleton):
         return self.message
 
     def on_new_tag(self, tag: int):
-        self.message = tag
+        user = self.storage.get_user(tag)
+
+        if user is None:
+            self.message = f'Unknown user! id: {tag}'
+        else:
+            user.attended(date=datetime.now())
+            self.message = f'Welcome {user.name}! You\'ve attended {user.attendance_count} times.'
+
         task = asyncio.create_task(asyncio.sleep(5))
         self._coroutines.append(task)
 
@@ -35,6 +45,7 @@ class Broker(Singleton):
                 await asyncio.sleep(1)
                 continue
             done, pending = await asyncio.wait(self._coroutines, return_when=asyncio.ALL_COMPLETED)
+            self._coroutines.clear()
             self._clear_message()
 
     async def loop(self):
