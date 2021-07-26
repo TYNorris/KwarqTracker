@@ -6,6 +6,7 @@ from app.src.reader import IReader, get_reader
 from app.src.storage.helper import StorageHelper
 from .message import Message, Status
 
+
 class Broker(Singleton):
 
     def __init__(self):
@@ -19,11 +20,15 @@ class Broker(Singleton):
         self.reader.add_listener(self.on_new_tag)
         self.message = Message.default()
         self.is_running = True
+        self._last_tag = None
 
     def get_current_message(self) -> Message:
         return self.message
 
     def on_new_tag(self, tag: int):
+        if tag is None or tag == self._last_tag:
+            return
+
         user = self.storage.get_user(tag)
 
         if user is None:
@@ -36,7 +41,7 @@ class Broker(Singleton):
             user.attended(date=datetime.now())
             self.message = Message(
                 title=f"Welcome {user.name}!",
-                subtitle=f"You've attended {user.attendance_count} times.",
+                subtitle=f"You've attended {user.get_attendance_count()} times.",
                 status=Status.success
             )
 
@@ -65,3 +70,4 @@ class Broker(Singleton):
 
     def _clear_message(self):
         self.message = Message.default()
+        self._last_tag = None
