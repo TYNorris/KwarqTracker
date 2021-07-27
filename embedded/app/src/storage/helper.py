@@ -15,10 +15,12 @@ class StorageHelper:
     def __init__(self):
         self.client = pyorient.OrientDB(config.ORIENT_DB_ADDRESS, 2424)
         self.session_id = self.client.connect(config.ORIENT_DB_LOGIN["user"], config.ORIENT_DB_LOGIN["password"])
-        self.client.db_open("Members",
+        self._clusters = self.client.db_open("Members",
                             config.ORIENT_DB_LOGIN["user"],
                             config.ORIENT_DB_LOGIN["password"],
                             pyorient.DB_TYPE_DOCUMENT)
+
+
 
     def get_user(self, uid: int) -> User:
         response = self.client.query(
@@ -30,5 +32,13 @@ class StorageHelper:
             return None
 
         output = User(**response[0].oRecordData)
-        print(output)
         return output
+
+    def add_user(self, user: User) -> bool:
+        user.uid = 12457673456
+        record = {
+            '@Members': user.serialize()
+        }
+        cluster = next(filter(lambda c: c.name is not None and 'member' in str(c.name), self._clusters))
+        rec_position = self.client.record_create(cluster.id, record)
+        return False
