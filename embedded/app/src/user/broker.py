@@ -2,8 +2,9 @@ import asyncio
 from datetime import datetime
 
 from app.src import Singleton
-from app.src.reader import IReader, get_reader
+from app.src.reader import get_reader
 from app.src.storage.helper import StorageHelper
+from .user import User
 from .message import Message, Status
 
 
@@ -24,6 +25,9 @@ class Broker(Singleton):
 
     def get_current_message(self) -> Message:
         return self.message
+
+    def add_user(self, name: str, uid: int):
+        self.storage.add_user(User(uid, name))
 
     def on_new_tag(self, tag: int):
         if tag is None or tag == self._last_tag:

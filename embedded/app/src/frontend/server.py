@@ -30,31 +30,65 @@ body = [
                 n_intervals=0
             )
         ],
-        md=8,
-    ),
-    bootstrap.Col(
-        [
-            html.Div(children=[
-                html.P(id='output', children=['n_clicks value: . n_clicks_previous value: ']),
-                bootstrap.Button(id='input', children='Click me'),
-                ]
-            )
-        ]
+        lg=8,
     ),
 ]
 
+user_form = [
+    bootstrap.Col(
+        [
+            bootstrap.Card(
+                id="new-member-card",
+                children=
+                [
+                    bootstrap.CardHeader(
+                       [html.H4(["Add a member"])]
+                    ),
+                    bootstrap.Form(
+                        id="new-member-form",
+                        children=[
+                            bootstrap.FormGroup(
+                                [
+                                    html.Label(["Name"]),
+                                    bootstrap.Input(id="name-field")
+                                ]
+                            ),
+                            bootstrap.FormGroup(
+                                [
+                                    html.Label(["ID"]),
+                                    bootstrap.Input(id="uid-field")
+                                ]
+                            ),
+                            bootstrap.Button(
+                                id="new-member-submit",
+                                children=["Add"],
+                                type="Submit"
+                            )
+                        ],
+                        style={
+                            "margin": "1em",
+                            "padding": "1em"
+                        }
+                    ),
+                ],
+            ),
+        ],
+        lg=4
+    )
+]
 
-# A Button on Paper
+
+# Main app layout
 app.layout = bootstrap.Container(
     [
         bootstrap.Row(
             header,
-            align="center",
+            align="top",
         ),
         bootstrap.Row(
-            body,
-            align="center"
-        )
+            [*body, *user_form],
+            align="top"
+        ),
     ],
     fluid=True,
 )
@@ -75,11 +109,12 @@ def update_text(interval):
 
 # Callback for Button
 @app.callback(
-    Output('output', 'children'),
-    [Input('input', 'n_clicks')],
-    [State('input', 'n_clicks_previous')])
-def display_clicks_flat(n_clicks_flat: int, n_clicks_flat_prev: int):
-    if n_clicks_flat:
-        return [f'n_clicks value: {n_clicks_flat}. n_clicks_prev value: {n_clicks_flat_prev}']
-    else:
-        return ['n_clicks value: ']
+    Output('new-member-card', 'style'),
+    [Input('new-member-submit', 'n_clicks')],
+    [State('name-field', 'value'),
+     State('uid-field', 'value')])
+def submit_new_member(n_clicks, name, uid):
+    print(f"Name: {name}, User:{uid}")
+    if name is not None and uid is not None:
+        broker.add_user(name, int(uid))
+    return {}

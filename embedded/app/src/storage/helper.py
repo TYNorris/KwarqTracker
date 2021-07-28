@@ -1,4 +1,4 @@
-
+import logging
 import pyorient
 
 from . import demo_users
@@ -6,6 +6,7 @@ from app.src.user.user import User
 from app.src.config import get_config
 
 config = get_config()
+logger = logging.getLogger(__name__)
 
 
 class StorageHelper:
@@ -35,10 +36,14 @@ class StorageHelper:
         return output
 
     def add_user(self, user: User) -> bool:
-        user.uid = 12457673456
-        record = {
-            '@Members': user.serialize()
-        }
-        cluster = next(filter(lambda c: c.name is not None and 'member' in str(c.name), self._clusters))
-        rec_position = self.client.record_create(cluster.id, record)
+        try:
+            record = {
+                '@Members': user.serialize()
+            }
+            cluster = next(filter(lambda c: c.name is not None and 'member' in str(c.name), self._clusters))
+            rec_position = self.client.record_create(cluster.id, record)
+            return True
+        except Exception:
+            logger.exception(f"Failed to add new user: {user}")
         return False
+
