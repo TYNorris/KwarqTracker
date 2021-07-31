@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from datetime import datetime, date
 
+from typing import Set, List
+
 from copy import deepcopy
 
 
@@ -8,7 +10,7 @@ from copy import deepcopy
 class User:
     uid: int
     name: str
-    dates_attended: set = field(default_factory=set)
+    dates_attended: Set[date] = field(default_factory=set)
 
     def __post_init__(self):
         if self.dates_attended is None:
@@ -29,19 +31,16 @@ class User:
 
     def serialize(self):
         output = deepcopy(self.__dict__)
-        output["dates_attended"] = self._format_dates_as_string()
+        output["dates_attended"] = self._format_dates_as_list()
         return output
 
-    def _format_dates_as_string(self) -> str:
-        date_string = ""
+    def _format_dates_as_list(self) -> List[str]:
+        date_list = []
 
         for d in self.dates_attended:
-            date_string += d.isoformat() + ","
+            date_list.append(d.isoformat())
 
-        if len(date_string) > 0:
-            date_string = date_string.rstrip(',')
-
-        return date_string
+        return date_list
 
     def _parse_dates_from_string(self, string) -> set:
         splits = string.split(',')

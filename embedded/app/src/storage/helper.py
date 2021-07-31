@@ -21,14 +21,8 @@ class StorageHelper:
                             config.ORIENT_DB_LOGIN["password"],
                             pyorient.DB_TYPE_DOCUMENT)
 
-
-
     def get_user(self, uid: int) -> User:
-        response = self.client.query(
-            f"SELECT FROM Members "
-            f"WHERE uid = {uid}",
-            1
-        )
+        response = self._query_user(uid)
         if not response:
             return None
 
@@ -37,9 +31,7 @@ class StorageHelper:
 
     def add_user(self, user: User) -> bool:
         try:
-            record = {
-                '@Members': user.serialize()
-            }
+            record = self._format_user(user)
             cluster = next(filter(lambda c: c.name is not None and 'member' in str(c.name), self._clusters))
             rec_position = self.client.record_create(cluster.id, record)
             return True
@@ -47,3 +39,26 @@ class StorageHelper:
             logger.exception(f"Failed to add new user: {user}")
         return False
 
+    def update_user(self, user: User) -> bool:
+        try:
+            current = self._query_user(user.uid)
+            if current is None:
+                logger.error(f"Could not update user. No user with ID {user.uid}")
+                return False
+            record = current[0]
+            self.client.record_update(record._rid, record._rid, self._format_user(user), record._version)
+            return True
+        except Exception:
+            logger.exception(f"Failed to update user: {user}")
+        return False
+
+    def _query_user(self, uid: int):
+        return self.client.query(
+            f"SELECT FROM Members "
+            f"WHERE uid = {uid}",
+            1
+        )
+
+    @staticmethod
+    def _format_user(user: User) -> dict:
+        return {'@Members': user.serialize()}

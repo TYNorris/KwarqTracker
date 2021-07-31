@@ -46,6 +46,7 @@ class Broker(Singleton):
             )
         else:
             user.attended(date=datetime.now())
+            self.storage.update_user(user)
             self.message = Message(
                 title=f"Welcome {user.name}!",
                 subtitle=f"You've attended {user.get_attendance_count()} times.",
