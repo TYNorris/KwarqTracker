@@ -50,5 +50,7 @@ class User:
     def parse_dates_from_list(self, l) -> set:
         output = set()
         for s in l:
+            if len(s) == 0:
+                continue
             output.add(date.fromisoformat(s))
         return output

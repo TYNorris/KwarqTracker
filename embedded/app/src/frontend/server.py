@@ -56,13 +56,25 @@ user_form = [
                             bootstrap.FormGroup(
                                 [
                                     html.Label(["ID"]),
-                                    bootstrap.Input(id="uid-field")
+                                    bootstrap.InputGroup(
+                                        [
+                                            bootstrap.InputGroupAddon(
+                                                bootstrap.Button("Load", id="uid-load-button", n_clicks=0),
+                                                addon_type="prepend",
+                                            ),
+                                            bootstrap.Input(id="uid-field"),
+                                        ])
+
                                 ]
                             ),
                             bootstrap.Button(
                                 id="new-member-submit",
                                 children=["Add"],
-                                type="Submit"
+                                type="Submit",
+                                style={
+                                    "float": "right"
+                                }
+
                             )
                         ],
                         style={
@@ -118,3 +130,16 @@ def submit_new_member(n_clicks, name, uid):
     if name is not None and uid is not None:
         broker.add_user(name, int(uid))
     return {}
+
+
+# Callback for Button
+@app.callback(
+    Output('uid-field', 'value'),
+    [Input('uid-load-button', 'n_clicks')])
+def load_uid_from_last_scanned(n_clicks):
+    last_tag = broker.get_last_tag()
+    print(last_tag)
+    if last_tag == 0:
+        return ""
+    return str(last_tag)
+

@@ -21,10 +21,13 @@ class Broker(Singleton):
         self.reader.add_listener(self.on_new_tag)
         self.message = Message.default()
         self.is_running = True
-        self._last_tag = None
+        self._last_tag = 0
 
     def get_current_message(self) -> Message:
         return self.message
+
+    def get_last_tag(self) -> int:
+        return self._last_tag
 
     def add_user(self, name: str, uid: int):
         self.storage.add_user(User(uid, name))
@@ -32,7 +35,7 @@ class Broker(Singleton):
     def on_new_tag(self, tag: int):
         if tag is None or tag == self._last_tag:
             return
-
+        self._last_tag = tag
         user = self.storage.get_user(tag)
 
         if user is None:
@@ -74,4 +77,3 @@ class Broker(Singleton):
 
     def _clear_message(self):
         self.message = Message.default()
-        self._last_tag = None
