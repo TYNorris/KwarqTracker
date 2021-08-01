@@ -9,7 +9,10 @@ from dash.dependencies import Input, Output, State, ALL
 from ..user.broker import Broker
 
 app = dash.Dash(
-    external_stylesheets=[bootstrap.themes.BOOTSTRAP]
+    external_stylesheets=[bootstrap.themes.BOOTSTRAP],
+    meta_tags=[
+        {"name": "viewport", "content": "width=device-width, initial-scale=1"}
+    ]
 )
 broker = Broker()
 
@@ -19,6 +22,7 @@ header = [
             html.H1("Kwarqs Check In"),
             html.Hr(),
         ],
+    xs=12
     )
 ]
 
@@ -33,6 +37,7 @@ body = [
             )
         ],
         lg=8,
+        xs=12
     ),
 ]
 
@@ -44,50 +49,74 @@ user_form = [
                 children=
                 [
                     bootstrap.CardHeader(
-                       [html.H4(["Add a member"])]
-                    ),
-                    bootstrap.Form(
-                        id="new-member-form",
+                        id="new-member-header",
                         children=[
-                            bootstrap.FormGroup(
-                                [
-                                    html.Label(["Name"]),
-                                    bootstrap.Input(id="name-field")
-                                ]
-                            ),
-                            bootstrap.FormGroup(
-                                [
-                                    html.Label(["ID"]),
-                                    bootstrap.InputGroup(
-                                        [
-                                            bootstrap.InputGroupAddon(
-                                                bootstrap.Button("Load", id="uid-load-button", n_clicks=0),
-                                                addon_type="prepend",
-                                            ),
-                                            bootstrap.Input(id="uid-field"),
-                                        ])
+                            html.H4([
+                                "Add a member",
+                                bootstrap.Button(
+                                    children="+",
+                                    id="new-member-expand-button",
+                                    color="primary",
+                                    size="sm",
+                                    outline=True,
+                                    style={
+                                        "float": "right",
+                                        "width": "3em",
+                                        "border": "0px"
+                                    }
 
-                                ]
-                            ),
-                            bootstrap.Button(
-                                id="new-member-submit",
-                                children=["Add"],
-                                type="Submit",
-                                style={
-                                    "float": "right"
-                                }
+                                )
+                            ]),
+                        ]
+                    ),
+                    bootstrap.Collapse(
+                        id="new-member-collapse",
+                        is_open=False,
+                        children=bootstrap.Form(
+                            id="new-member-form",
+                            children=[
+                                bootstrap.FormGroup(
+                                    [
+                                        html.Label(["Name"]),
+                                        bootstrap.Input(id="name-field")
+                                    ]
+                                ),
+                                bootstrap.FormGroup(
+                                    [
+                                        html.Label(["ID"]),
+                                        bootstrap.InputGroup(
+                                            [
+                                                bootstrap.InputGroupAddon(
+                                                    bootstrap.Button("Load", id="uid-load-button", n_clicks=0),
+                                                    addon_type="prepend",
+                                                ),
+                                                bootstrap.Input(id="uid-field"),
+                                            ])
 
-                            )
-                        ],
-                        style={
-                            "margin": "1em",
-                            "padding": "1em"
-                        }
+                                    ]
+                                ),
+                                bootstrap.Button(
+                                    id="new-member-submit",
+                                    children=["Add"],
+                                    type="Submit",
+                                    style={
+                                        "float": "right"
+                                    }
+
+                                )
+                            ],
+                            style={
+                                "margin": "1em",
+                                "padding": "1em"
+                            }
+                        )
                     ),
                 ],
             ),
         ],
-        lg=4
+        lg=4,
+        xs=12,
+
     )
 ]
 
@@ -107,12 +136,13 @@ manual_sign_in = [
                         bs_size="lg",
                         style={
                             "margin": "auto",
-                            "padding": "1em"
+                            "padding": "1em",
                         }
                     ),
                 ]
             )
         ],
+        xs=12,
         lg=4
     )
 ]
@@ -125,11 +155,11 @@ app.layout = bootstrap.Container(
             align="top",
         ),
         bootstrap.Row(
-            [*body, *user_form],
+            [*body, *manual_sign_in],
             align="top"
         ),
         bootstrap.Row(
-            manual_sign_in,
+            user_form,
             align="top"
         )
     ],
@@ -200,16 +230,29 @@ def manual_sign_in_clicked(n_clicks):
     ctx = dash.callback_context
 
     if len(ctx.triggered) == 1:
-        item = json.loads(ctx.triggered[0]['prop_id'].split('.')[0])
+        item_string = ctx.triggered[0]['prop_id'].split('.')[0]
+        if not item_string:
+            return {}
+        item = json.loads(item_string)
         uid = item["uid"]
         broker.on_new_tag(uid)
 
-
-    ctx_msg = json.dumps({
-        'states': ctx.states,
-        'triggered': ctx.triggered,
-        'inputs': ctx.inputs
-    }, indent=2)
-    print(ctx_msg)
     return {}
 
+
+@app.callback(
+    [Output(f"new-member-expand-button", "children"),
+     Output(f"new-member-collapse", "is_open")],
+    [Input(f"new-member-expand-button", "n_clicks")],
+    [State(f"new-member-collapse", "is_open")],
+)
+def toggle_accordion(n_clicks, is_open):
+    ctx = dash.callback_context
+
+    if not ctx.triggered:
+        return "+", False
+
+    if is_open:
+        return "+", False
+    else:
+        return "-", True
