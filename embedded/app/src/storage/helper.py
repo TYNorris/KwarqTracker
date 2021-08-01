@@ -1,6 +1,8 @@
 import logging
 import pyorient
 
+from typing import List
+
 from . import demo_users
 from app.src.user.user import User
 from app.src.config import get_config
@@ -12,6 +14,7 @@ logger = logging.getLogger(__name__)
 class StorageHelper:
     client: pyorient.OrientDB
     session_id: object
+    _max_query_length = 100
 
     def __init__(self):
         self.client = pyorient.OrientDB(config.ORIENT_DB_ADDRESS, 2424)
@@ -27,6 +30,11 @@ class StorageHelper:
             return None
 
         output = User(**response[0].oRecordData)
+        return output
+
+    def get_all_users(self) -> List[User]:
+        response = self._query_all_users()
+        output = [User(**r.oRecordData) for r in response]
         return output
 
     def add_user(self, user: User) -> bool:
@@ -57,6 +65,12 @@ class StorageHelper:
             f"SELECT FROM Members "
             f"WHERE uid = {uid}",
             1
+        )
+
+    def _query_all_users(self):
+        return self.client.query(
+            f"SELECT * FROM MEMBERS",
+            self._max_query_length
         )
 
     @staticmethod

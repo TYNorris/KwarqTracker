@@ -1,8 +1,10 @@
 import dash
+import json
+
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as bootstrap
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output, State, ALL
 
 from ..user.broker import Broker
 
@@ -89,6 +91,31 @@ user_form = [
     )
 ]
 
+manual_sign_in = [
+    bootstrap.Col(
+        [
+            bootstrap.Card(
+                id="manual-card",
+                children=
+                [
+                    bootstrap.CardHeader(
+                       [html.H4(["Sign in without ID"])]
+                    ),
+                    bootstrap.DropdownMenu(
+                        id="manual-user-list",
+                        label="Select your name",
+                        bs_size="lg",
+                        style={
+                            "margin": "auto",
+                            "padding": "1em"
+                        }
+                    ),
+                ]
+            )
+        ],
+        lg=4
+    )
+]
 
 # Main app layout
 app.layout = bootstrap.Container(
@@ -101,6 +128,10 @@ app.layout = bootstrap.Container(
             [*body, *user_form],
             align="top"
         ),
+        bootstrap.Row(
+            manual_sign_in,
+            align="top"
+        )
     ],
     fluid=True,
 )
@@ -142,4 +173,43 @@ def load_uid_from_last_scanned(n_clicks):
     if last_tag == 0:
         return ""
     return str(last_tag)
+
+
+@app.callback(
+    Output("manual-user-list", "children"),
+    [Input("manual-user-list", "n_clicks")]
+)
+def load_users(n):
+    users = broker.get_all_users()
+    print(users)
+    items = [
+        bootstrap.DropdownMenuItem(u.name, key=u.uid, id={
+            "type": "manual-user",
+            "uid": u.uid
+        })
+        for u in users
+    ]
+    return items
+
+
+@app.callback(
+    Output('manual-card', 'style'),
+    Input({'type': 'manual-user', 'uid': ALL}, 'n_clicks'),
+)
+def manual_sign_in_clicked(n_clicks):
+    ctx = dash.callback_context
+
+    if len(ctx.triggered) == 1:
+        item = json.loads(ctx.triggered[0]['prop_id'].split('.')[0])
+        uid = item["uid"]
+        broker.on_new_tag(uid)
+
+
+    ctx_msg = json.dumps({
+        'states': ctx.states,
+        'triggered': ctx.triggered,
+        'inputs': ctx.inputs
+    }, indent=2)
+    print(ctx_msg)
+    return {}
 

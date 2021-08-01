@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from typing import List
 
 from app.src import Singleton
 from app.src.reader import get_reader
@@ -28,6 +29,9 @@ class Broker(Singleton):
 
     def get_last_tag(self) -> int:
         return self._last_tag
+
+    def get_all_users(self) -> List[User]:
+        return self.storage.get_all_users()
 
     def add_user(self, name: str, uid: int):
         self.storage.add_user(User(uid, name))
