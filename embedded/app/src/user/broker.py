@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime
 from typing import List
+from asyncio.queues import Queue
 
 from app.src import Singleton
 from app.src.reader import get_reader
@@ -23,6 +24,7 @@ class Broker(Singleton):
         self.message = Message.default()
         self.is_running = True
         self._last_tag = 0
+        self._incoming_queue = Queue()
 
     def get_current_message(self) -> Message:
         return self.message
@@ -40,6 +42,9 @@ class Broker(Singleton):
         if tag is None or tag == self._last_tag:
             return
         self._last_tag = tag
+        self._incoming_queue.put_nowait(tag)
+
+    def process_tag(self, tag: int):
         user = self.storage.get_user(tag)
 
         if user is None:
@@ -74,10 +79,19 @@ class Broker(Singleton):
             self._coroutines.clear()
             self._clear_message()
 
+    async def process_loop(self):
+        while True:
+            if self._incoming_queue.empty():
+                await asyncio.sleep(0.1)
+                continue
+            tag = await self._incoming_queue.get()
+            self.process_tag(tag)
+
     async def loop(self):
         await asyncio.gather(
             self.read_loop(),
             self.clear_loop(),
+            self.process_loop(),
         )
 
     def _clear_message(self):
