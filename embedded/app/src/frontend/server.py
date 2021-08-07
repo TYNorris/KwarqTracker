@@ -184,7 +184,7 @@ def update_text(interval):
 
 # Callback for Button
 @app.callback(
-    Output('new-member-card', 'style'),
+    Output('name-field', 'value'),
     [Input('new-member-submit', 'n_clicks')],
     [State('name-field', 'value'),
      State('uid-field', 'value')])
@@ -192,7 +192,7 @@ def submit_new_member(n_clicks, name, uid):
     logger.info(f"New member submitted - Name: {name}, User:{uid}")
     if name is not None and uid is not None:
         broker.add_user(name, int(uid))
-    return {}
+    return ""
 
 
 # Callback for Button
