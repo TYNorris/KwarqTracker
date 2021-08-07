@@ -20,11 +20,38 @@ broker = Broker()
 
 
 header = [
-    bootstrap.Col([
-            html.H1("Kwarqs Check In"),
-            html.Hr(),
+    bootstrap.Navbar(
+        [
+            html.A(
+                # Use row and col to control vertical alignment of logo / brand
+                bootstrap.Row(
+                    [
+                        bootstrap.Col(html.Img(
+                            src=app.get_asset_url('fans.png'),
+                            height="80px"),
+                            style={
+                                "margin-right": "20px",
+                            }),
+                        bootstrap.Col(bootstrap.NavbarBrand(
+                            "Check In",
+                            className="mb h1",
+                            style={
+                                "font-size": "40px",
+                            }
+                        )),
+                    ],
+                    align="center",
+                    no_gutters=True
+                ),
+            ),
         ],
-    xs=12
+        color="dark",
+        dark=True,
+        style={
+            "margin-bottom": "10px",
+            "margin-left": "-15px",
+            "margin-right": "-15px",
+        }
     )
 ]
 
@@ -152,10 +179,7 @@ manual_sign_in = [
 # Main app layout
 app.layout = bootstrap.Container(
     [
-        bootstrap.Row(
-            header,
-            align="top",
-        ),
+        *header,
         bootstrap.Row(
             [*body, *manual_sign_in],
             align="top"
