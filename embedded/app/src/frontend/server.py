@@ -1,5 +1,6 @@
 import dash
 import json
+import logging
 
 import dash_html_components as html
 import dash_core_components as dcc
@@ -8,6 +9,7 @@ from dash.dependencies import Input, Output, State, ALL
 
 from ..user.broker import Broker
 
+logger = logging.getLogger(__name__)
 app = dash.Dash(
     external_stylesheets=[bootstrap.themes.BOOTSTRAP],
     meta_tags=[
@@ -187,7 +189,7 @@ def update_text(interval):
     [State('name-field', 'value'),
      State('uid-field', 'value')])
 def submit_new_member(n_clicks, name, uid):
-    print(f"Name: {name}, User:{uid}")
+    logger.info(f"New member submitted - Name: {name}, User:{uid}")
     if name is not None and uid is not None:
         broker.add_user(name, int(uid))
     return {}
@@ -199,7 +201,6 @@ def submit_new_member(n_clicks, name, uid):
     [Input('uid-load-button', 'n_clicks')])
 def load_uid_from_last_scanned(n_clicks):
     last_tag = broker.get_last_tag()
-    print(last_tag)
     if last_tag == 0:
         return ""
     return str(last_tag)
@@ -211,7 +212,7 @@ def load_uid_from_last_scanned(n_clicks):
 )
 def load_users(n):
     users = broker.get_all_users()
-    print(users)
+    logger.info(f"Loading all users. {len(users)} total")
     items = [
         bootstrap.DropdownMenuItem(u.name, key=u.uid, id={
             "type": "manual-user",

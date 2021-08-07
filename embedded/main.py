@@ -7,12 +7,11 @@ from app.src.frontend import server
 from app.src.user.broker import Broker
 
 app = server.app
-
-setup_logger()
 config = get_config()
 
 
 def reader_start():
+    setup_logger()
     asyncio.run(Broker().loop())
 
 reader_thread = Thread(target=reader_start)
