@@ -70,6 +70,9 @@ body = [
     ),
 ]
 
+_qr_size = 300
+_qr_url = "kwarqs.local"
+
 user_form = [
     bootstrap.Col(
         [
@@ -145,7 +148,21 @@ user_form = [
         ],
         lg=4,
         xs=12,
-
+    ),
+    bootstrap.Col(
+        [
+            html.Img(
+                src=f"https://chart.googleapis.com/chart?cht=qr&chl=http%3A%2F%2F{_qr_url}"
+                    f"&chs={_qr_size}x{_qr_size}&choe=UTF-8&chld=L|2%27%20alt=",
+                style={
+                    "max-width": f"{_qr_size}px",
+                    "height": f"{_qr_size}px",
+                    "float": "right"
+                }
+            )
+        ],
+        lg=8,
+        xs=12,
     )
 ]
 
@@ -165,14 +182,14 @@ manual_sign_in = [
                         bs_size="lg",
                         style={
                             "margin": "auto",
-                            "padding": "1em",
+                            "padding": "1.75em",
                         }
                     ),
-                ]
+                ],
             )
         ],
         xs=12,
-        lg=4
+        lg=4,
     )
 ]
 
