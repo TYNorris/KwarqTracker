@@ -28,15 +28,15 @@ header = [
                     [
                         bootstrap.Col(html.Img(
                             src=app.get_asset_url('fans.png'),
-                            height="80px"),
+                            height="65px"),
                             style={
-                                "margin-right": "20px",
+                                "margin-right": "10px",
                             }),
                         bootstrap.Col(bootstrap.NavbarBrand(
                             "Check In",
                             className="mb h1",
                             style={
-                                "font-size": "40px",
+                                "font-size": "35px",
                             }
                         )),
                     ],
