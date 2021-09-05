@@ -1,7 +1,7 @@
 import logging
 import os
 
-from .secrets import db_password
+from .secrets import db_password, email_password
 
 class Config():
     BASE_DIR = os.getcwd()
@@ -14,3 +14,9 @@ class Config():
         "user": "root",
         "password": db_password
     }
+
+    DESTINATION_ADDRESSES = [
+        "travis@team2423.org"
+    ]
+    EMAIL_ADDRESS = "attendance@team2423.org"
+    EMAIL_PASSWORD = email_password

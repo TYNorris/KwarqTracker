@@ -8,8 +8,10 @@ from typing import List
 from app.src import Singleton
 from app.src.reader import get_reader
 from app.src.storage.helper import StorageHelper
+from app.src.email import Emailer
 from .user import User
 from .message import Message, Status
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +29,12 @@ class Broker(Singleton):
         self.storage = StorageHelper()
         self.reader.add_listener(self.on_new_tag)
         self.message = Message.default()
+        self.emailer = Emailer()
         self.is_running = True
-        self._last_tag = 0
         self._prevent_rescan = False
+        self._is_email_queued = True
         self._incoming_queue = Queue()
+        self._last_tag = 0
 
     def get_current_message(self) -> Message:
         return self.message
@@ -97,6 +101,19 @@ class Broker(Singleton):
             tag = await self._incoming_queue.get()
             self.process_tag(tag)
 
+    async def email_loop(self):
+        while True:
+            try:
+                await asyncio.sleep(20)
+                if self._is_email_queued:
+                    self._is_email_queued = False
+                    self.emailer.send_attendance([
+                        "Travis", "Amory", "Bry"
+                    ])
+                await asyncio.sleep(500)
+            except Exception:
+                logger.exception("Failed email error")
+
     async def loop(self):
         while True:
             try:
@@ -104,6 +121,7 @@ class Broker(Singleton):
                     self.read_loop(),
                     self.clear_loop(),
                     self.process_loop(),
+                    self.email_loop(),
                 )
             except Exception:
                 logger.exception("Fatal Error. Restarting...")
