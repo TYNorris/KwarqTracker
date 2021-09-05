@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from asyncio.queues import Queue
+from copy import copy
 from datetime import datetime
 from typing import List
 
@@ -32,8 +33,9 @@ class Broker(Singleton):
         self.emailer = Emailer()
         self.is_running = True
         self._prevent_rescan = False
-        self._is_email_queued = True
+        self._is_email_queued = False
         self._incoming_queue = Queue()
+        self._members_attended = set()
         self._last_tag = 0
 
     def get_current_message(self) -> Message:
@@ -68,6 +70,8 @@ class Broker(Singleton):
         else:
             logger.info(f"CHECKIN - {user.name}, {user.uid}, {datetime.now().date()}")
             user.attended(date=datetime.now())
+            self._members_attended.add(user.name)
+            self._is_email_queued = True
             self.storage.update_user(user)
             self.message = Message(
                 title=f"Welcome {user.name}!",
@@ -102,15 +106,20 @@ class Broker(Singleton):
             self.process_tag(tag)
 
     async def email_loop(self):
+        check_frequency = 60 * 15
         while True:
             try:
-                await asyncio.sleep(20)
-                if self._is_email_queued:
-                    self._is_email_queued = False
-                    self.emailer.send_attendance([
-                        "Travis", "Amory", "Bry"
-                    ])
-                await asyncio.sleep(500)
+                if not self._is_email_queued:
+                    await asyncio.sleep(check_frequency)
+                    continue
+                if datetime.now().hour < 21:
+                    logger.info("Waiting until 9:00 for email")
+                    await asyncio.sleep(check_frequency)
+                    continue
+                self._is_email_queued = False
+                members = [n for n in self._members_attended]
+                self._members_attended.clear()
+                self.emailer.send_attendance(members)
             except Exception:
                 logger.exception("Failed email error")
 

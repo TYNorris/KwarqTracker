@@ -16,7 +16,6 @@ class Emailer:
     def __init__(self):
         self.address = config.EMAIL_ADDRESS
         self.password = config.EMAIL_PASSWORD
-
         self.smtp_server = "smtp.gmail.com"
 
     def send_email(self, receivers, message: MIMEMultipart):
