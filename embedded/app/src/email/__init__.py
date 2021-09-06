@@ -1,12 +1,14 @@
 import logging
 import smtplib
-import ssl
 
 from datetime import date
+from email import encoders
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from typing import List
 
 from app.src.config import get_config
+from app.src.user.user import User
 
 logger = logging.getLogger(__name__)
 config = get_config()
@@ -32,9 +34,9 @@ class Emailer:
         except Exception:
             logger.exception("Failed to send email")
 
-    def send_attendance(self, names: list):
+    def send_attendance(self, names: List[str], all_users: List[User]):
         message = MIMEMultipart()
-        today = date.today().strftime(f"%m/%d/%y")
+        today = date.today().strftime(f"%m-%d-%y")
 
         body = "Here is the KwarQs attendance for today."
 
@@ -45,5 +47,39 @@ class Emailer:
         message["Subject"] = f"Attendance for {today}"
         message.attach(MIMEText(body))
 
+        csv = self.make_csv(all_users)
+        attachment = MIMEText(csv)
+        attachment.add_header('Content-Disposition',
+                              'attachment',
+                              filename=f'kwarqs{today}.csv')
+
+        message.attach(attachment)
         self.send_email(config.DESTINATION_ADDRESSES, message)
+
+    def make_csv(self, all_users: List[User]):
+        all_dates = set()
+        for user in all_users:
+            for d in user.dates_attended:
+                if d not in all_dates:
+                    all_dates.add(d)
+
+        date_list = list(all_dates)
+        date_list.sort()
+        date_list = [str(d) for d in date_list]
+
+        csv = "Name, " + ", ".join(date_list)
+        csv += "\n"
+
+        for user in all_users:
+            csv += f"{user.name}, "
+            for d in date_list:
+                if date.fromisoformat(d) in user.dates_attended:
+                    csv += "x, "
+                else:
+                    csv += " , "
+            csv += "\n"
+
+        return csv
+
+
 

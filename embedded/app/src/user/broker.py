@@ -113,13 +113,12 @@ class Broker(Singleton):
                     await asyncio.sleep(check_frequency)
                     continue
                 if datetime.now().hour < 21:
-                    logger.info("Waiting until 9:00 for email")
                     await asyncio.sleep(check_frequency)
                     continue
                 self._is_email_queued = False
                 members = [n for n in self._members_attended]
                 self._members_attended.clear()
-                self.emailer.send_attendance(members)
+                self.emailer.send_attendance(members, self.get_all_users())
             except Exception:
                 logger.exception("Failed email error")
 
