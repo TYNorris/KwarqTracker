@@ -51,6 +51,14 @@ class Broker(Singleton):
         self.storage.add_user(User(uid, name))
         self.on_new_tag(uid)
 
+    def send_email(self):
+        if not self._members_attended:
+            return
+        self._is_email_queued = False
+        members = [n for n in self._members_attended]
+        self._members_attended.clear()
+        self.emailer.send_attendance(members, self.get_all_users())
+
     def on_new_tag(self, tag: int):
         if tag is None or (self._prevent_rescan and tag == self._last_tag):
             return
@@ -115,10 +123,7 @@ class Broker(Singleton):
                 if datetime.now().hour < 21:
                     await asyncio.sleep(check_frequency)
                     continue
-                self._is_email_queued = False
-                members = [n for n in self._members_attended]
-                self._members_attended.clear()
-                self.emailer.send_attendance(members, self.get_all_users())
+                self.send_email()
             except Exception:
                 logger.exception("Failed email error")
 
@@ -136,4 +141,3 @@ class Broker(Singleton):
 
     def _clear_message(self):
         self.message = Message.default()
-

@@ -157,7 +157,8 @@ user_form = [
                 style={
                     "max-width": f"{_qr_size}px",
                     "height": f"{_qr_size}px",
-                    "float": "right"
+                    "float": "right",
+                    "margin-top": "20em"
                 }
             )
         ],
@@ -186,10 +187,43 @@ manual_sign_in = [
                         }
                     ),
                 ],
+                style={
+                    "margin": "1em",
+                    "padding": "1em"
+                }
             )
         ],
         xs=12,
         lg=4,
+    )
+]
+
+email_button = [
+    bootstrap.Col(
+        [
+            bootstrap.Card(
+                id="email-card",
+                children=
+                [
+                    bootstrap.CardHeader(
+                        [html.H4(["Export Attendance"])]
+                    ),
+                    bootstrap.CardBody([
+                        bootstrap.Button(
+                            id="email-send-button",
+                            children=["Send"],
+                            color="secondary",
+                        )
+                        ],
+                        style={
+                            "margin": "auto"
+                        }
+                    )
+                ]
+            )
+        ],
+        lg=4,
+        xs=12,
     )
 ]
 
@@ -204,6 +238,14 @@ app.layout = bootstrap.Container(
         bootstrap.Row(
             user_form,
             align="top"
+        ),
+        bootstrap.Row(
+            email_button,
+            align="top",
+            style={
+                "margin-top": "5em",
+                "margin-bottom": "5em"
+            }
         )
     ],
     fluid=True,
@@ -223,7 +265,6 @@ def update_text(interval):
     return children, message.status
 
 
-# Callback for Button
 @app.callback(
     Output('name-field', 'value'),
     [Input('new-member-submit', 'n_clicks')],
@@ -236,7 +277,6 @@ def submit_new_member(n_clicks, name, uid):
     return ""
 
 
-# Callback for Button
 @app.callback(
     Output('uid-field', 'value'),
     [Input('uid-load-button', 'n_clicks')])
@@ -298,3 +338,12 @@ def toggle_accordion(n_clicks, is_open):
         return "+", False
     else:
         return "-", True
+
+
+@app.callback(
+    [Output("email-card", 'color')],
+    [Input("email-send-button", "n_clicks")],
+)
+def send_email(n_clicks):
+    broker.send_email()
+    return 'primary'
