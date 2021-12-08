@@ -345,5 +345,8 @@ def toggle_accordion(n_clicks, is_open):
     [Input("email-send-button", "n_clicks")],
 )
 def send_email(n_clicks):
+    if n_clicks == 0:
+        return 'secondary'
+
     broker.send_email()
     return 'primary'
