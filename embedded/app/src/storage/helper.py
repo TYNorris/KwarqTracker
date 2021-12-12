@@ -35,7 +35,7 @@ class StorageHelper:
     def get_all_users(self) -> List[User]:
         response = self._query_all_users()
         output = [User(**r.oRecordData) for r in response]
-        return output
+        return sorted(output, key=lambda u: u.name)
 
     def add_user(self, user: User) -> bool:
         try:
